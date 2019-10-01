@@ -5,7 +5,6 @@ title: "Embedding Learning Beyond Words"
 date: 2019-09-06 20:00:00
 categories: [DeepLearning,NLP]
 mathjax: true
-comments: true
 ---
 
 > Embedding is a dense representation of tokens in the form of numeric vectors. The concept derived from word embeddings which can be learned using a variety of language models. Such technique is well-known, but beyond NLP problems embedding can be implemented to represent other instances and entities. I'll briefly discuss such application through my experiences in healthcare industry.
@@ -26,17 +25,16 @@ In NLP, Word2Vec model has already been widely applied, so I won't talk too much
 
 > "Never stand up when you can sit down, and never sit down when you can lie down." -- Winston Churchill
 
-![Skip-gram Example]({{ '/images/skip-gram-sliding-window.png' | relative_url }})
-{: style="width: 640px;" class="center"}
-*Fig. 1. The skip-gram sampling technique.*
+<div style="text-align: center"><img src="../images/skip-gram-sliding-window.png" width="600px" /></div>
+
+<center>*Fig. 1. The skip-gram sampling technique.*</center>
 
 
 Each context-target pair is treated as a new observation in the data. For example, the target word "when" in the above case produces four training samples: ("when", "stand"), ("when", "up"), ("when", "you"), and ("when", "can").
 
+<div style="text-align: center"><img src="../images/skip-gram.png" width="450px" /></div>
 
-![Skip-gram Model]({{ '/images/skip-gram.png' | relative_url }})
-{: style="width: 560px;" class="center"}
-*Fig. 2. The skip-gram model. Both the input vector $x$ and the output $y$ are one-hot encoded word representations. The hidden layer is the word embedding of size $N$.*
+<center>*Fig. 2. The skip-gram model. Both the input vector $x$ and the output $y$ are one-hot encoded word representations. The hidden layer is the word embedding of size $N$.*</center>
 
 
 Given the vocabulary size $V$, we are about to learn word embedding vectors of size $N$. The model learns to predict one context word (output) using one target word (input) at a time. 
@@ -63,6 +61,8 @@ Because there are multiple contextual words, we average their corresponding word
 
 In healthcare industry, medical concept learning would be a different story. Take medical claims for example, we can treat one patient's claim history as a "document", each encounter as "sentence" and each claim code as "word". However, unlike in free-text words within a sentence is ordered, one encounter is presented as a set of codes filed together within one service date. Clearly sliding window won't work here. As an analogy to Skip-Gram and CBOW assuming neighbor tokens are relevant to center tokens, my initial assumption in this scenario is all codes are relevant within an encounter, i.e. taking one token as input and all other codes as target. I call it "Claim2Vec". Taking one patient's claim records as example, for the patient ICD10-R269 (unspecified abnormalities of gait and mobility), ICD10-E119 (type 2 diabetes mellitus without complications), CPT-99213 (office visit) and CPT-1170F (functional status assessed) was documented in Nov 13th, 2017; ICD10-I110 (hypertensive heart disease with heart failure), ICD10-I509 (Heart failure, unspecified), NDC-5022845190 (Atorvastatin Calcium), NDC-6332328004 (Furosemide) was documented in Dev 2nd, 2017：
 
+<center>
+
 |  Target  |  Context |
 | ------------ | ------------ |
 | ICD10-R269 | ICD10-E119, CPT-99213, CPT-1170F | 
@@ -73,6 +73,8 @@ In healthcare industry, medical concept learning would be a different story. Tak
 | ICD10-I509 | ICD10-I110, NDC-5022845190, NDC-6332328004 |
 | NDC-5022845190 | ICD10-I110, ICD10-I509, NDC-6332328004 |
 | NDC-6332328004 | ICD10-I110, ICD10-I509, NDC-5022845190 |
+
+</center>
 
 The approach might seems arbitrary, but we cannot copy Skip-Gram to this case as we cannot pre-assume the order of claim codes within encounters: diagnosis might happens before or after procedure or medicines.
 
@@ -95,6 +97,7 @@ Morin and Bengio ([2005](https://www.iro.umontreal.ca/~lisa/pointeurs/hierarchic
 
 Let's say the whole token population contains 8 claim codes, and the frequency of each token are as follows:
 
+<center>
 
 |  Token  |  Counts |
 | ------------ | ------------ |
@@ -107,12 +110,13 @@ Let's say the whole token population contains 8 claim codes, and the frequency o
 | ICD10-J449 (Chronic obstructive pulmonary disease) | 2 |
 | CPT-93010 (Electrocardiogram) | 1 |
 
+</center>
 
 According to Huffman coding, we can convert this table into a Huffman tree:
 
-![Claim codes Huffman tree]({{ '/images/huffman-tree.png' | relative_url }})
-{: style="width: 420px;" class="center"}
-*Fig. 3. An illustration of the hierarchical softmax Huffman tree. The leaf nodes in white are tokens in the corpus. The black inner nodes carry information on the probabilities of reaching its child nodes. One path starting from the root to the leaf denotes the way to get probability on this token.)*
+<div style="text-align: center"><img src="../images/huffman-tree.png" width="400px" /></div>
+
+<center>*Fig. 3. An illustration of the hierarchical softmax Huffman tree. The leaf nodes in white are tokens in the corpus. The black inner nodes carry information on the probabilities of reaching its child nodes. One path starting from the root to the leaf denotes the way to get probability on this token.)*</center>
 
 Now view this tree as a decision process, or a random walk, that begins at the root of the tree and descents towards the leaf nodes at each step. It turns out that the probability of each outcome in the original distribution uniquely determines the transition probabilities of this random walk. At every internal node of the tree, the transition probabilities to the children are given by the proportions of total probability mass in the subtree of its left- vs its right- child. This decision tree now allows us to view each outcome (i.e. tokens in the corpus) as the result of a sequence of binary decisions. For example:
 
@@ -210,9 +214,9 @@ $$
 
 Since 2017, ELMo ([Peters et al.](https://arxiv.org/abs/1802.05365)), BERT ([Devlin et al.](https://arxiv.org/abs/1810.04805)) and XLnet ([Yang et al.](https://arxiv.org/abs/1906.08237)) were being created which pushed NLP into a new level (funny why folks name them after Sesame Street). If interested, please visit [Jay Alammar's blog](http://jalammar.github.io/illustrated-bert/) giving an outstanding illustration of such models. One of the intuitive of these models is context issue. While Word2Vec gives each word a fixed vector representation no matter what the context is, these models tend to produce dynamic, contextualized embeddings. For example, the word "Apple" can be both a fruit or a company depending on context. In an ideal Word2Vec, if you highlight hyper-dimensional points of all the fruit words and all the company words, "Apple" might appear right between the two groups. But contextualized embedding models would give "Apple" totally different vectors based on what context looks like. Take ELMo as example, in simple words it's a model based on GloVe embeddings followed by multi-layer bidirectional LSTM trained in English-German task. The secret of ELMo to produce contextualized embeddings is to concatenate hidden state vectors in bi-LSTM layers.
 
-![ELMo]({{ '/images/elmo.png' | relative_url }})
-{: style="width: 640px;" class="center"}
-*Fig. 4. A structure of EMLo, [image source](https://ireneli.eu/2018/12/17/elmo-in-practice/).*
+<div style="text-align: center"><img src="../images/elmo.png" width="640px" /></div>
+
+<center>*Fig. 4. A structure of EMLo, [image source](https://ireneli.eu/2018/12/17/elmo-in-practice/).*</center>
 
 Big question is, should such issue be concerned in other embedding use cases other than NLP? In claim codes data, the medical meaning of each coding is generally fixed. But what if certain medicine can treat multiple conditions, or certain medicine perform differently under various conditions, or even some virus infection might be minor but can be very serious if the patient is carrying HIV? Please let me know your thoughts on this.
 
