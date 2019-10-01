@@ -61,7 +61,6 @@ Because there are multiple contextual words, we average their corresponding word
 
 In healthcare industry, medical concept learning would be a different story. Take medical claims for example, we can treat one patient's claim history as a "document", each encounter as "sentence" and each claim code as "word". However, unlike in free-text words within a sentence is ordered, one encounter is presented as a set of codes filed together within one service date. Clearly sliding window won't work here. As an analogy to Skip-Gram and CBOW assuming neighbor tokens are relevant to center tokens, my initial assumption in this scenario is all codes are relevant within an encounter, i.e. taking one token as input and all other codes as target. I call it "Claim2Vec". Taking one patient's claim records as example, for the patient ICD10-R269 (unspecified abnormalities of gait and mobility), ICD10-E119 (type 2 diabetes mellitus without complications), CPT-99213 (office visit) and CPT-1170F (functional status assessed) was documented in Nov 13th, 2017; ICD10-I110 (hypertensive heart disease with heart failure), ICD10-I509 (Heart failure, unspecified), NDC-5022845190 (Atorvastatin Calcium), NDC-6332328004 (Furosemide) was documented in Dev 2nd, 2017：
 
-<center>
 
 |  Target  |  Context |
 | ------------ | ------------ |
@@ -74,7 +73,6 @@ In healthcare industry, medical concept learning would be a different story. Tak
 | NDC-5022845190 | ICD10-I110, ICD10-I509, NDC-6332328004 |
 | NDC-6332328004 | ICD10-I110, ICD10-I509, NDC-5022845190 |
 
-</center>
 
 The approach might seems arbitrary, but we cannot copy Skip-Gram to this case as we cannot pre-assume the order of claim codes within encounters: diagnosis might happens before or after procedure or medicines.
 
@@ -97,7 +95,6 @@ Morin and Bengio ([2005](https://www.iro.umontreal.ca/~lisa/pointeurs/hierarchic
 
 Let's say the whole token population contains 8 claim codes, and the frequency of each token are as follows:
 
-<center>
 
 |  Token  |  Counts |
 | ------------ | ------------ |
@@ -110,7 +107,6 @@ Let's say the whole token population contains 8 claim codes, and the frequency o
 | ICD10-J449 (Chronic obstructive pulmonary disease) | 2 |
 | CPT-93010 (Electrocardiogram) | 1 |
 
-</center>
 
 According to Huffman coding, we can convert this table into a Huffman tree:
 
@@ -223,5 +219,18 @@ Big question is, should such issue be concerned in other embedding use cases oth
 
 ## Examples: Claim2Vec
 
-After reviewing all the theoretical knowledge above, let me show you an trained example medical concept embedding based on millions of patient claim records:
+After reviewing all the theoretical knowledge above, let me show you an trained example medical concept embedding based on millions of patient claim records. Using Google's [projector tool](https://projector.tensorflow.org/), all trained claim embeddings are plotted with PCA into 3-D visualization. If we search code ICD10-E119 (Type 2 diabetes mellitus without complications):
 
+<div style="text-align: center"><img src="../images/e119-demo.png" width="700px" /></div>
+
+<center>*Fig. 5. Claim2Vec Demo I.*</center>
+
+Note that in the original space, the nearest claim codes are basically all about diabetes. Let's try something scarier, ICD10-B20 (HIV disease):
+
+<div style="text-align: center"><img src="../images/b20-demo.png" width="700px" /></div>
+
+<center>*Fig. 6. Claim2Vec Demo II.*</center>
+
+In the original space, the nearest claim codes includes asymptomatic HIV infection status, 	infectious agent detection by nucleic acid (DNA or RNA) of HIV-1 quantification, a medicine code of Emtricitabine-Tenofovir Disoproxil Fumarate (treat HIV infection and reduce the risk of HIV infection) and also T-Cell counts. Such codes are all medically relevant.
+
+Hope this post helps explain stuffs!
