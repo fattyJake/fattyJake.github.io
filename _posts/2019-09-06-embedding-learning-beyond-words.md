@@ -27,14 +27,13 @@ In NLP, Word2Vec model has already been widely applied, so I won't talk too much
 
 <div style="text-align: center"><img src="../images/skip-gram-sliding-window.png" width="600px" /></div>
 
-<center>*Fig. 1. The skip-gram sampling technique.*</center>
-
+<center> <i>Fig. 1. The skip-gram sampling technique.</i> </center>
 
 Each context-target pair is treated as a new observation in the data. For example, the target word "when" in the above case produces four training samples: ("when", "stand"), ("when", "up"), ("when", "you"), and ("when", "can").
 
 <div style="text-align: center"><img src="../images/skip-gram.png" width="450px" /></div>
 
-<center>*Fig. 2. The skip-gram model. Both the input vector $x$ and the output $y$ are one-hot encoded word representations. The hidden layer is the word embedding of size $N$.*</center>
+<center> <i>Fig. 2. The skip-gram model. Both the input vector $x$ and the output $y$ are one-hot encoded word representations. The hidden layer is the word embedding of size $N$.</i> </center>
 
 
 Given the vocabulary size $V$, we are about to learn word embedding vectors of size $N$. The model learns to predict one context word (output) using one target word (input) at a time. 
@@ -112,7 +111,7 @@ According to Huffman coding, we can convert this table into a Huffman tree:
 
 <div style="text-align: center"><img src="../images/huffman-tree.png" width="400px" /></div>
 
-<center>*Fig. 3. An illustration of the hierarchical softmax Huffman tree. The leaf nodes in white are tokens in the corpus. The black inner nodes carry information on the probabilities of reaching its child nodes. One path starting from the root to the leaf denotes the way to get probability on this token.)*</center>
+<center> <i>Fig. 3. An illustration of the hierarchical softmax Huffman tree. The leaf nodes in white are tokens in the corpus. The black inner nodes carry information on the probabilities of reaching its child nodes. One path starting from the root to the leaf denotes the way to get probability on this token.)</i> </center>
 
 Now view this tree as a decision process, or a random walk, that begins at the root of the tree and descents towards the leaf nodes at each step. It turns out that the probability of each outcome in the original distribution uniquely determines the transition probabilities of this random walk. At every internal node of the tree, the transition probabilities to the children are given by the proportions of total probability mass in the subtree of its left- vs its right- child. This decision tree now allows us to view each outcome (i.e. tokens in the corpus) as the result of a sequence of binary decisions. For example:
 
@@ -212,7 +211,7 @@ Since 2017, ELMo ([Peters et al.](https://arxiv.org/abs/1802.05365)), BERT ([Dev
 
 <div style="text-align: center"><img src="../images/elmo.png" width="640px" /></div>
 
-<center>*Fig. 4. A structure of EMLo, [image source](https://ireneli.eu/2018/12/17/elmo-in-practice/).*</center>
+<center> <i>Fig. 4. A structure of EMLo, [image source](https://ireneli.eu/2018/12/17/elmo-in-practice/).</i> </center>
 
 Big question is, should such issue be concerned in other embedding use cases other than NLP? In claim codes data, the medical meaning of each coding is generally fixed. But what if certain medicine can treat multiple conditions, or certain medicine perform differently under various conditions, or even some virus infection might be minor but can be very serious if the patient is carrying HIV? Please let me know your thoughts on this.
 
@@ -223,13 +222,13 @@ After reviewing all the theoretical knowledge above, let me show you an trained 
 
 <div style="text-align: center"><img src="../images/e119-demo.png" width="700px" /></div>
 
-<center>*Fig. 5. Claim2Vec Demo I.*</center>
+<center> <i>Fig. 5. Claim2Vec Demo I.</i> </center>
 
 Note that in the original space, the nearest claim codes are basically all about diabetes. Let's try something scarier, ICD10-B20 (HIV disease):
 
 <div style="text-align: center"><img src="../images/b20-demo.png" width="700px" /></div>
 
-<center>*Fig. 6. Claim2Vec Demo II.*</center>
+<center> <i>Fig. 5. Claim2Vec Demo II.</i> </center>
 
 In the original space, the nearest claim codes includes asymptomatic HIV infection status, 	infectious agent detection by nucleic acid (DNA or RNA) of HIV-1 quantification, a medicine code of Emtricitabine-Tenofovir Disoproxil Fumarate (treat HIV infection and reduce the risk of HIV infection) and also T-Cell counts. Such codes are all medically relevant.
 
