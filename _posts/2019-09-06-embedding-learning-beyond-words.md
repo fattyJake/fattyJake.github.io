@@ -211,7 +211,7 @@ Since 2017, ELMo ([Peters et al.](https://arxiv.org/abs/1802.05365)), BERT ([Dev
 
 <div style="text-align: center"><img src="../images/elmo.png" width="640px" /></div>
 
-<center> <i>Fig. 4. A structure of EMLo, [image source](https://ireneli.eu/2018/12/17/elmo-in-practice/).</i> </center>
+<center> <i>Fig. 4. A structure of EMLo, <a href="https://ireneli.eu/2018/12/17/elmo-in-practice/">image source</a>.</i> </center>
 
 Big question is, should such issue be concerned in other embedding use cases other than NLP? In claim codes data, the medical meaning of each coding is generally fixed. But what if certain medicine can treat multiple conditions, or certain medicine perform differently under various conditions, or even some virus infection might be minor but can be very serious if the patient is carrying HIV? Please let me know your thoughts on this.
 
