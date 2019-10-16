@@ -5,16 +5,24 @@
     font-size: 95%;
 }
 
-.highlight pre {
-    overflow: scroll; /* Prefer no word wrap? Uncomment this line and comment out the 2 lines below. */
-    /* word-break: break-all; */
-    /* word-wrap: break-word; */
-  }
-
-
 code {
     font-family:'Consolas', monospace;
     color: #d8d8d8;
+}
+
+.highlight pre code * {
+    white-space: nowrap;    // this sets all children inside to nowrap
+}
+
+.highlight pre {
+    overflow-y: auto;
+    overflow-x: auto;
+    /* word-break: break-all; */
+    /* word-wrap: break-word; */
+}
+
+.highlight pre code {
+    white-space: pre;       // forces <code> to respect <pre> formatting
 }
 
 .highlighter-rouge { 
@@ -22,13 +30,7 @@ code {
     color: #FF554A; 
     font-size: 16px;
 }
-.highlight .pre {
-    overflow-y: auto;
-    overflow-x: auto;
-    position: relative;
-    margin: 0;
-    padding: 1em;
-}
+
 .highlight .hll { background-color: #f1fa8c }
 .highlight  { background: #383838; color: #f8f8f2 }
 .highlight .c { color: #6272a4 } /* Comment */
