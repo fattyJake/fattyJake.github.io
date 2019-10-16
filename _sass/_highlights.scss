@@ -6,28 +6,29 @@
   font-size: 90%;
 }
 
+code {
+  font-family:'Consolas', monospace;
+  color: #d8d8d8;
+}
+
+.highlight pre code * {
+  white-space: wrap;    // this sets all children inside to nowrap
+}
+
 .highlight pre {
-  /* overflow: scroll; Prefer no word wrap? Uncomment this line and comment out the 2 lines below. */
   word-break: break-all;
   word-wrap: break-word;
 }
 
-code {
-  font-family:'Consolas', monospace;
-  color: #d8d8d8;
+.highlight pre code {
+  white-space: pre;       // forces <code> to respect <pre> formatting
 }
 
 .highlighter-rouge { 
   background-color: #FAFAFA; 
   color: #FF554A; 
 }
-.highlight .pre {
-  overflow-y: auto;
-  overflow-x: auto;
-  position: relative;
-  margin: 0;
-  padding: 1em;
-}
+
 .highlight .c { color: #586E75 } /* Comment */
 .highlight .err { color: #93A1A1 } /* Error */
 .highlight .g { color: #93A1A1 } /* Generic */
