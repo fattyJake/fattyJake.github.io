@@ -97,7 +97,7 @@ with tf.Session() as sess:
         _, summary = sess.run([train_op, summaries_op], feed_dict={x=x, y=y})
         summary_writer.add_summary(summary, step)
 ```
-
+<br>
 <div style="text-align: center"><img src="../images/gradient_check.jpg" width="700px" /></div>
 
 <center> <i>Fig. 3. TensorBoard Gradient Check example.</i> </center>
