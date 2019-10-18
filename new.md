@@ -74,7 +74,7 @@ with plt.style.context("ggplot"):
     plt.show()
 ```
 <br>
-<div style="text-align: center"><img src="./images/xgb_vd_gain.png" width="700px" /></div>
+<div style="text-align: center"><img src="./images/xgb_vd_gain.png" width="600px" /></div>
 
 <center> <i>Fig. 1. Feature importance in XGBClassifier</i> </center>
 
@@ -84,7 +84,21 @@ Is this plot telling the story? Can we say essential hypertension is the largest
 
 ## Weight (Frequency)
 
-Addictive tree models are massive ensemble of multiple weak learners, which in general are [CARTs (Classification And Regression Trees)](https://en.wikipedia.org/wiki/Decision_tree_learning). The weight (or frequency) measure of XGBoost is the percentage representing the numbers of times each feature occurs in the trees of the model or number of times each feature used for split. In the our example, if ICD10-I10 occurred in 2 splits, 1 split and 3 splits in each of tree1, tree2 and tree3; then the weightage for feature1 will be 2+1+3 = 6. The frequency for feature1 is calculated as its percentage weight over weights of all features.
+Addictive tree models are massive ensemble of multiple weak learners, which in general are [CARTs (Classification And Regression Trees)](https://en.wikipedia.org/wiki/Decision_tree_learning). The weight (or frequency) measure of XGBoost is the percentage representing the numbers of times each feature occurs in the trees of the model or number of times each feature used for split. In the our example, let's assume the model only contains 3 trees as followed:
+
+<div style="text-align: center"><img src="./images/xgb_vd_sample_tree.png" width="600px" /></div>
+
+<center> <i>Fig. 2. Sample XGBoost Trees</i> </center>
+
+The weight approach count the total splits for each feature: e.g. ICD10-I10 occurred in 1 split and 1 split in each of tree1 and tree3; then we the weight for ICD10-I10 will be 2. The frequency for ICD10-I10 is calculated as its percentage weight over weights of all features. In this 3-tree example, weights are ICD10-E785: 3 (0.375), ICD10-I10: 2 (0.25), CPT-93923: 1 (0.125), CPT-99305: 1 (0.125) and CPT-99306: 1 (0.125), while all other features got weights of 0.
+
+
+The downside of weight approach is, the features that get more splits are not necessarily contribute more to the output. Common features might be used for splitting trees a lot, but those splits might not distinguish targets significantly. Another issue with weight approach is not stable from model to model under the same dataset: if you train 2 models on exactly the same dataset, the tree structures are totally different which affects split counts.
+
+
+## Cover
+
+The cover metric means the relative number of observations related to this feature. For example, if you have 100 observations, 4 features and 3 trees, and suppose feature1 is used to decide the leaf node for 10, 5, and 2 observations in tree1, tree2 and tree3 respectively; then the metric will count cover for this feature as 10+5+2 = 17 observations. This will be calculated for all the 4 features and the cover will be 17 expressed as a percentage for all features' cover metrics.
 
 
 Hope this post helps explain stuffs!
