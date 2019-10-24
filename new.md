@@ -15,7 +15,7 @@ mathjax: true
 {:toc}
 
 
-Interpretability of machine learning is vital important in any business applications, which is one of the biggest challenge of machine learning product selling. Most data scientists or machine learning engineers often do not focus on buying user trust by explaining reasoning behind a decision in an easy-to-digest way, but spend most of the time trying to boost model performance. I've encountered situations so many times that I presented some cool stuffs with confidence to leaderships how magic they are and how much money they're gonna save for the company, but I was followed by questions like "man this is great, but how does it come to such conclusions". It's tough, especially when trying to explain models to non-technical folks who are usually the guys deciding whether to apply your models. When you are trying to train cutting-edge algorithms, it equally increase the difficulty of model interpretation, because it is their decision-making complexity that fit the data better.
+Interpretability of machine learning is vital important in any business applications, which is one of the biggest challenge of machine learning product selling as well. Most data scientists or machine learning engineers often do not focus on buying user trust by explaining reasoning behind a decision in an easy-to-digest way, but spend most of the time trying to boost model performance. I've encountered situations so many times that I presented some cool stuffs with confidence to leaderships how magic they are and how much money they're gonna save for the company, but I was followed by questions like "man this is great, but how does it come to such conclusions". It's tough, especially when trying to explain models to non-technical folks who are usually the guys deciding whether to apply your models. When you are trying to train cutting-edge algorithms, it equally increase the difficulty of model interpretation, because it is their decision-making complexity that fit the data better.
 
 
 XGBoost by [Chen and Guestrin](https://arxiv.org/pdf/1603.02754.pdf) (as well as faster version LightGBM by [Ke et al.](https://papers.nips.cc/paper/6907-lightgbm-a-highly-efficient-gradient-boosting-decision-tree.pdf)) might be many companies' favorite algorithm. The performance usually the most robust and outstanding compared to traditional models, and they are easy to train and deploy in multiple environment. Let's break down some details about approaches to interpret these additive tree models.
@@ -32,7 +32,7 @@ Let's start with an simple example. We have couple of patients' claim data from 
 | CPT-93923 | Under Non-Invasive Extremity Arterial Studies, upper and lower |
 | CPT-93306 | Under Echocardiography Procedures | 
 | ICD10-E785 | Hyperlipidemia, unspecified |
-| ICD10-I110 | Initial Nursing Facility Care, per day |
+| CPT-99305 | Initial Nursing Facility Care, per day |
 | CPT-93925 | Under Non-Invasive Extremity Arterial Studies, lower |
 | ICD10-I10 | Essential (Primary) Hypertension |
 | NDC-504580579 | Rivaroxaban, (blood thinners treating and preventing blood clots) |
@@ -228,7 +228,7 @@ Finally back to Figure 1., the final gain value for each feature is the sum-up o
 - **Polarity**: it cannot reveal the polarity of feature contribution: all the feature importance value are shown as percentages over all values (positive values), we cannot distinguish those features contribute negatively to targets.
 - **Interactive effects**: all values are independently appear as individual feature contributions, it cannot tell us how multiple features interactively affects model. Moreover, if there are two features highly correlated, the final feature importance scores might be weaken by each other.
 - **Individual level interpretation**: now we can only view the overall feature importance globally, but it might differs a lot in terms of individual level. If we train a model to predict whether a person has flu, although globally "fever" has higher score than "sneeze", but we might notice model still predict a high probability to a person who doesn't have fever but sneeze, which means individually sneeze is a strong indicator of flu as well.
-- **Consistency**: gain measure still cannot ensure the consistency of interpretation. A simple example would be if we compare the following two trees, they are identical logically and deliver the same output. But if we calculate the gains for tree1: $\text{Gain}_{I10} = \frac{1}{2} \left[ \frac{(G_1+G_2)^2}{H_1+H_2+\lambda}+\frac{(G_3+G_4)^2}{H_3+H_4+\lambda} \right] - \gamma$ while $\text{Gain}_{E785} = \frac{1}{2} \left[ \frac{G_1^2}{H_1+\lambda}+\frac{G_2^2}{H_2+\lambda}-\frac{(G_1+G_2)^2}{H_1+H_2+\lambda} + \frac{G_3^2}{H_3+\lambda}+\frac{G_4^2}{H_4+\lambda}-\frac{(G_3+G_4)^2}{H_3+H_4+\lambda} \right] - 2\gamma$. Now if we get gain for tree2: $\text{Gain}_{I10} = \frac{1}{2} \left[ \frac{G_1^2}{H_1+\lambda}+\frac{G_3^2}{H_3+\lambda}-\frac{(G_1+G_3)^2}{H_1+H_3+\lambda} + \frac{G_2^2}{H_2+\lambda}+\frac{G_4^2}{H_4+\lambda}-\frac{(G_2+G_4)^2}{H_2+H_4+\lambda} \right] - 2\gamma$ while $\text{Gain}_{E785} = \frac{1}{2} \left[ \frac{(G_1+G_3)^2}{H_1+H_3+\lambda}+\frac{(G_2+G_4)^2}{H_2+H_4+\lambda} \right] - \gamma$. The gain value for the same feature from two tree is totally different from each other. As we discuss above, XGBoost learns the tree structure by enumerating feature level by level in a random order, therefore we cannot ensure the tree structures nor gain values to be consistent even if two model deliver the similar results. 
+- **Consistency**: gain measure still cannot ensure the consistency of interpretation. A simple example would be if we compare the following two trees, they are identical logically and deliver the same output. But if we calculate the gains for tree1: $\text{Gain}_{I10} = \frac{1}{2} \left[ \frac{(G_1+G_2)^2}{H_1+H_2+\lambda}+\frac{(G_3+G_4)^2}{H_3+H_4+\lambda}-\frac{\sum_i G_i}{\sum_i H_i + \lambda} \right] - \gamma$ while $\text{Gain}_{E785} = \frac{1}{2} \left[ \frac{G_1^2}{H_1+\lambda}+\frac{G_2^2}{H_2+\lambda}-\frac{(G_1+G_2)^2}{H_1+H_2+\lambda} + \frac{G_3^2}{H_3+\lambda}+\frac{G_4^2}{H_4+\lambda}-\frac{(G_3+G_4)^2}{H_3+H_4+\lambda} \right] - 2\gamma$. Now if we get gain for tree2: $\text{Gain}_{I10} = \frac{1}{2} \left[ \frac{G_1^2}{H_1+\lambda}+\frac{G_3^2}{H_3+\lambda}-\frac{(G_1+G_3)^2}{H_1+H_3+\lambda} + \frac{G_2^2}{H_2+\lambda}+\frac{G_4^2}{H_4+\lambda}-\frac{(G_2+G_4)^2}{H_2+H_4+\lambda} \right] - 2\gamma$ while $\text{Gain}_{E785} = \frac{1}{2} \left[ \frac{(G_1+G_3)^2}{H_1+H_3+\lambda}+\frac{(G_2+G_4)^2}{H_2+H_4+\lambda}-\frac{\sum_i G_i}{\sum_i H_i + \lambda} \right] - \gamma$. The gain values for the same feature from two trees are totally different from each other. As we discuss above, XGBoost learns the tree structure by enumerating feature level by level in a random order, therefore we cannot ensure the tree structures nor gain values to be consistent even if two model deliver the similar results. 
 
 <div style="text-align: center"><img src="./images/xgb_vd_gain_inconsistency.png" width="550px" /></div>
 
@@ -237,14 +237,68 @@ Finally back to Figure 1., the final gain value for each feature is the sum-up o
 
 ## Feature Importance from "Outside"
 
-There approaches to interpret model from another perspective by treating the predictive model as a black box. In other words, the following approaches are not specifically designed for additive tree models but ideally for all machine learning model at any complexity levels.
+There approaches categorized as "model-agnostic interpretation" which interpret model from another perspective by treating the predictive model as a black box. In other words, the following approaches are not specifically designed for additive tree models but ideally for all machine learning model at any complexity levels.
 
 ### Permutation Importance
 
-Permutation feature importance measures the increase in the prediction error of the model after we permuted the feature’s values, which breaks the relationship between the feature and the true outcome.
+Permutation feature importance was introduced by Breiman [(2001)](https://www.stat.berkeley.edu/~breiman/randomforest2001.pdf) for random forest which measures the increase in the prediction error of the model after we "mess up" (permuted) the feature values, which breaks the relationship between the feature and the true outcome. The concept recognize a feature is "important" if shuffling its values increases the model error a lot; while feature is "unimportant" if shuffling its values leaves the model error barely unchanged, i.e. the model ignored the feature for the prediction. Based on this idea, Fisher et al. [(2018)](https://arxiv.org/pdf/1801.01489.pdf) proposed "model reliance", a model-agnostic version of the feature importance. They also introduced more advanced ideas about feature importance, for example a (model-specific) version that takes into account that many prediction models may predict the data well. Here's briefly how we calculate permutation feature importance:
 
-5.5.1 Theory
-The concept is really straightforward: We measure the importance of a feature by calculating the increase in the model’s prediction error after permuting the feature. A feature is “important” if shuffling its values increases the model error, because in this case the model relied on the feature for the prediction. A feature is “unimportant” if shuffling its values leaves the model error unchanged, because in this case the model ignored the feature for the prediction. The permutation feature importance measurement was introduced by Breiman (2001)35 for random forests. Based on this idea, Fisher, Rudin, and Dominici (2018)36 proposed a model-agnostic version of the feature importance and called it model reliance. They also introduced more advanced ideas about feature importance, for example a (model-specific) version that takes into account that many prediction models may predict the data well. Their paper is worth reading.
+- Let the original model error $\xi=\mathcal{L}(y,f(X))$ where $f(X)$ is the trained model
+- For each feature $j \in \{1,2,\dots,k\}$ where $k$ is the total number of feaures, generate feature matrix $X^p_j$ bu permuting feature $j$ in matrix $X$ which breaks the association between feature J and target $y$.
+- Estimate error $\xi^p=\mathcal{L}(y,f(X^p_j))$ can define feature importance for j as $s_j=\xi^p/\xi$ or $s_j=\xi^p-\xi$
+
+Let try it on our example with Python library ```eli5```:
+
+```python
+from eli5.sklearn import PermutationImportance
+
+perm = PermutationImportance(model, random_state=1).fit(
+    data[columns[:-1]],
+    data['Vascular_Disease'].values
+)
+
+# plot feature importance
+with plt.style.context("ggplot"):
+    plt.figure(figsize=(15, 5))
+    plt.bar(range(len(columns[:-1])), perm.feature_importances_)
+    plt.xticks(range(len(columns[:-1])), columns[:-1], rotation=-45, fontsize=14)
+    plt.title('Permutation Feature importance', fontsize=14)
+    plt.show()
+```
+<br>
+<div style="text-align: center"><img src="./images/xgb_vd_permutation.png" width="600px" /></div>
+
+<center> <i>Fig. 7. Permutation feature importance in XGBClassifier</i> </center>
+
+The results are dramatically different than what we saw before: it give significantly higher scores to CPT-93923 and CPT-93925 than others (noted that these two variables are very correlated). Is it reliable? There are actually couple of drawbacks in permutation feature importance:
+
+- **Training vs test data**: since permutation feature importance is linked to the error of the model, sometimes it's not what you need. Specially in training/test data splits, if the model overfits, permutation importance calculated on training set and test data would be different. 
+- **Consistency**: when the permutation is repeated multiple times on one feature, the results might vary greatly. Of course repeating the permutation and averaging the importance measures over repetitions stabilizes the measure, but increases the time of computation.
+- **Correlation bias**: permutation of features produces unreal data instances when two or more features are correlated. When they are positively correlated (like CPT-93923 and CPT-93925 in our example) and it shuffles one of the features, it create new instances that are unlikely or even physically impossible (e.g. a male who is pregnant), yet it use these new instances to measure the importance.
+
+
+### LIME
+
+LIME, short for **L**ocal **I**nterpretable **M**odel-agnostic **E**xplanations ([Ribeiro et al., 2016](https://arxiv.org/pdf/1602.04938.pdf)) is a very interesting and intuitive idea in which the authors propose an implementation of local surrogate models trained additionally to approximate the predictions of the underlying black box model. It aims to explain predictions of any model in an interpretable and faithful manner to human by learning an local model around the prediction. Theoretically, the surrogate model should present:
+
+- **Interpretability**: it is supposed to provide qualitative insights between the input to the target for non-technical folks to easily understand.
+- **Local fidelity**: as a trade-off to interpretability: e.g. a too simplified surrogate model might be easy to understand but it won't be relevant to the original model anymore. It should be at least locally faithful and replicate original model's behavior closely to instance being predicted.
+- **Model agnostic**: as we discuss as the beginning of this chapter, it explains the model from outside perspective by treating it as a black box $f(x)$. The approach should ideally work out for models with any complexity.
+- **Global perspective**: it should provide global interpretation beside local surrogate models bu building selecting a set of explanations to present human as the representative of the original model.
+
+The LIME explanation formula is defined as:
+
+$$
+\xi(x) = \underset{g \in G}{\mathrm{argmin}}\text{ }\mathcal{L}(f,g,\pi_x)+\Omega(g)
+$$
+
+where
+- $f$ is the original model;
+- $g$ is an interpretable model to approximate $f$. Here to be specific, "interpretable" means a simple model with high interpretability like linear model (by looking at coefficient weights) or decision tree (by looking at split logics);
+- $\pi_x$ is a vector of weights to aggregate all interpretable models $g$;
+- $\Omega(g)$ is the complexity of $g$, it can be number of weights if $g$ is a linear model, or depth of tree if $g$ is a decision tree.
+
+Let's see how to operate it specifically. LIME propose to decide which feature has more contribution to the output by perturbing the input instance, or randomly sampling instance features' presence or absence. The intuition of perturbing is that it's understandable by human. For example, in tabular data, how does the model perform after removing some features, or in image data, how does the model perform after covering some part of the image, or in text data, how does the model perform after removing some words.
 
 
 Hope this post helps explain stuffs!
