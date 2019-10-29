@@ -298,7 +298,87 @@ where
 - $\pi_x$ is a vector of weights to aggregate all interpretable models $g$;
 - $\Omega(g)$ is the complexity of $g$, it can be number of weights if $g$ is a linear model, or depth of tree if $g$ is a decision tree.
 
-Let's see how to operate it specifically. LIME propose to decide which feature has more contribution to the output by perturbing the input instance, or randomly sampling instance features' presence or absence. The intuition of perturbing is that it's understandable by human. For example, in tabular data, how does the model perform after removing some features, or in image data, how does the model perform after covering some part of the image, or in text data, how does the model perform after removing some words.
+Let's see how to operate it specifically. LIME propose to decide which feature has more contribution to the output by perturbing the input instance, or randomly sampling instance features' presence or absence. The intuition of perturbing is that it's understandable by human. For example, in tabular data, how does the model perform after removing some features, or in image data, how does the model perform after covering some part of the image, or in text data, how does the model perform after removing some words. Let $x'$ as the binary vector of human understandable version of the actual features used by original model representing the presence/absence of each feature, while a set of $z' \in \{0,1\}^{d'}$ as the corresponding perturbed instance uniformly sample from $x'$ (nonzero fraction elements of $x'$). We use these new set $Z$ to probe the original model as black box as often as we want and try to train an interpretable model $g$. Let's take Spare Linear Explanation from the paper as example:
+
+Let's assume $g(z')=w \cdot z'$ as a linear model, usually we use [Lasso](https://en.wikipedia.org/wiki/Lasso_(statistics)) (I'll explain later why). We will try to minimize $\mathcal{L}(f,g,\pi_x)$ using square loss:
+
+$$
+\mathcal{L}(f,g,\pi_x) = \underset{z,z' \in Z}{\sum} \pi_x(z) \left( f(z)-g(z')^2 \right)
+$$
+
+where $\pi_x(z)=\exp(-\frac{D(x,z)^2}{\sigma^2})$ as an exponential kernel. Remember $\pi_x$ should be representing the proximity between original model $f$ and surrogate model $g$ to weight all trials under $z'$, so we use $D(x,z)$ to be some distance function like [Euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance) or [cosine distance](https://en.wikipedia.org/wiki/Cosine_similarity) with width $\sigma$. We also set a constant number $K$ to limit the number of features to use: noticed $\Omega(g)$ disappears from the objective function, the reason is we hope to use $\Omega(g)$ penalty to make $g$ as simple as possible, here we can simply use K-Lasso to do that. In Lasso we can simply tune $\lambda$ to set some weights to **exact 0** (compared to [Ridge](https://en.wikipedia.org/wiki/Tikhonov_regularization) is able to drive weights near 0 but always non-zero, you can find mathematical explanation in details [here](https://www.quora.com/How-would-you-describe-the-difference-between-linear-regression-lasso-regression-and-ridge-regression)), hereby we can achieve constant K-feature model for each $g$. At last, with the around-sampled $z'$ which leads to the minimal loss, we retrieve weight $w^*$ from the corresponding optimal $g^*$.
+
+Let's try an example:
+
+```python
+import lime
+import lime.lime_tabular
+import numpy as np
+
+# Key parameters explained
+# training_data: as the binary vectors - x'
+# mode: model type, here is "classification"
+# training_labels: groud truth y
+# kernel_width: sigma of in pi distance weight, defaults to sqrt (number of columns) * 0.75
+# feature_selection: feature selection method, can be "forward_selection", "lasso_path", "none" or "auto".
+# discretizer='quartile'
+
+explainer = lime.lime_tabular.LimeTabularExplainer(
+    training_data =data[columns[:-1]].astype(int).values,
+    mode='classification',
+    training_labels=data['Vascular_Disease'].values,
+    feature_names=columns[:-1],
+    feature_selection='lasso_path',
+)
+
+def prob(x):
+    if len(x.shape) == 1:
+        df_x = pd.DataFrame(np.reshape(x, [1, -1]), columns=columns[:-1])
+    else:
+        df_x = pd.DataFrame(x, columns=columns[:-1])
+    return model.predict_proba(df_x)
+
+# asking for explanation for LIME model
+# data_row: 1d numpy array as an instance
+# predict_fn: prediction function returning probabilities of each class
+# num_features: maximum number of features: K
+# num_samples: size of the neighborhood to learn the linear model: number of z'
+# distance_metric: the distance metric in pi, default to be "euclidean"
+
+sample_instance = np.array([0, 1, 1, 1, 0, 0, 1, 1])
+exp = explainer.explain_instance(
+    data_row=sample_instance,
+    predict_fn=prob,
+    num_features=8,
+    num_samples=5000,
+)
+exp.show_in_notebook(show_predicted_value=True, show_table=True)
+```
+
+<br>
+<div style="text-align: center"><img src="./images/xgb_vd_lime.png" width="700px" /></div>
+
+<center> <i>Fig. 8. LIME Local Explainer for XGBClassifier</i> </center>
+
+There are three parts to the explanation:
+1. Left part gives the prediction probabilities for class 0 and class 1.
+2. Middle part gives the most important features. As it is an example of binary class we are looking at 2 colors. Attributes having orange color support the class 1 and those with color blue support class 0. CPT-93925 <= 0 means when this feature's value satisfy this criteria it support class 0. Float point number on the horizontal bars represent the relative importance of these features.
+3. Right part follows the same color coding as 1 and 2. It contains the actual values of for the top variables.
+
+LIME has been a popular approach to interpret complex model, more often in deep learning studies, due to it's unique idea "thing out of the box". But it has some major limitations as well:
+
+- **Explainer parameter tunning**： the correct definition of the "neighborhood" is broad when using LIME with tabular data. For each application you have to try different kernel settings and see for yourself if the explanations actually make sense.
+- **Under-engineered implementation**: as the authors mentioned as well, a lot of works needed for further improvement. For example, sampling could be improved in the current implementation of LIME. Data points are sampled from a Gaussian distribution, ignoring the correlation between features, which leads to unrealistic data points as we discussed in permutation approach. Algorithm optimization is needed as well since it requires a lot of computing resources to explain every instance.
+- **Consistency**: again it's a big problem. [Alvarez-Melis et al.](https://arxiv.org/pdf/1806.08049.pdf) showed that the explanations of two very similar instances varied greatly in a simulated setting. Also, if you repeat the sampling process, then the explanations that come out can be different especially working with high-dimensional dataset.
+
+
+## SHAP: Interpretable Additive Approach
+
+SHAP (**SH**apley **A**dditive ex**P**lanations) by [Lundberg and Lee (2016)](https://arxiv.org/pdf/1802.03888.pdf) is a method to explain additive tree model predictions both individually and globally. The goal of SHAP is to explain the prediction of an instance $x$ by computing the contribution of each feature to the prediction, measured by Shapley values from [coalitional game theory](https://en.wikipedia.org/wiki/Cooperative_game_theory).
+
+### Shapley Values
+
+
 
 
 Hope this post helps explain stuffs!
