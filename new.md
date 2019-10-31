@@ -374,7 +374,7 @@ LIME has been a popular approach to interpret complex model, more often in deep 
 
 ## SHAP: Interpretable Additive Approach
 
-SHAP (**SH**apley **A**dditive ex**P**lanations) by [Lundberg and Lee (2016)](https://arxiv.org/pdf/1802.03888.pdf) is a method to explain additive tree model predictions both individually and globally. The goal of SHAP is to explain the prediction of an instance $x$ by computing the contribution of each feature to the prediction, measured by Shapley values from [coalitional game theory](https://en.wikipedia.org/wiki/Cooperative_game_theory).
+SHAP (**SH**apley **A**dditive ex**P**lanations) by [Lundberg and Lee (2017)](https://arxiv.org/pdf/1705.07874.pdf) is a method to explain additive tree model predictions both individually and globally. The goal of SHAP is to explain the prediction of an instance $x$ by computing the contribution of each feature to the prediction, measured by Shapley values from [coalitional game theory](https://en.wikipedia.org/wiki/Cooperative_game_theory).
 
 ### Shapley Values
 
@@ -386,18 +386,48 @@ Before we dig into Shapley value, we have to make 3 fairness assumption:
 2. All profit belongs to players;
 3. If one player participate multiple tasks, the player should earn multiple shares based on contribution.
 
-The coalitional game is defined as: the player group is a set N (of 4 players) and a function $v$ that maps subsets of players to the real numbers $\mathbb {R}$ representing the present value a subset, with $v(\emptyset )=0$, where $\emptyset$ denotes the empty set. The function $v$ is called a characteristic function.
+The coalitional game is defined as: the player group is a set N (of 4 players) and a function $v$ that maps subsets of players to the real numbers $\mathbb {R}$ representing the present value a subset, with $v(\emptyset )=0$, where $\emptyset$ denotes the empty set. The function $v$ is called a **characteristic function**.
 
-The function {\displaystyle v}v has the following meaning: if S is a coalition of players, then v(S), called the worth of coalition S, describes the total expected sum of payoffs the members of {\displaystyle S}S can obtain by cooperation.
+The function $v$ has the following meaning: if $S$ is a coalition of players, then $v(S)$, called the worth of coalition $S$, describes the total expected sum of payoffs the members of $S$ can obtain by cooperation. According to the Shapley value, the amount that player i gets given in a coalitional game $(v,N)$ is:
 
-The Shapley value is one way to distribute the total gains to the players, assuming that they all collaborate. It is a "fair" distribution in the sense that it is the only distribution with certain desirable properties listed below. According to the Shapley value,[6] the amount that player i gets given in a coalitional game {\displaystyle (v,N)}(v,N) is
+$$
+\phi_j(v)=\sum_{S\subseteq N\setminus\{x_j\}}\frac{|S|!\left(|N|-|S|-1\right)!}{|N|!}\left(v\left(S\cup\{x_j\}\right)-v(S)\right)
+$$
+
+where $N=\{x_1, x_2, \dots x_n\}$ is the total number of players and the sum extends over all subsets $S$ of $N$ not containing player $x_j$. The formula can be interpreted as follows: imagine the coalition being formed one player at a time, with each player demanding their contribution $v(S \cup \{x_j\}) − v(S)$ as a fair compensation, and then for each player take the average of this contribution over the possible different permutations in which the coalition can be formed. Please check the [original paper](https://apps.dtic.mil/dtic/tr/fulltext/u2/604084.pdf) if you're interested in formula derivation. It can be also interpreted as:
+
+$$
+\phi_j(v)=\frac{1}{\text{number of players}}\sum_{\text{coalitions excluding }x_j}\frac{\text{marginal contribution of }x_j\text{ to coalition}}{\text{number of coalitions excluding }x_j\text{ of this size}}
+$$
+
+Back to our little example, say we want to calculate the earnings of the investor, we consider all possible conditions of when the investor join the group and calculate the expected marginal gain. The permutation of the 4 players should be 4!=24 conditions. Let's encode the investor as 1, the engineer as 2, worker A as 3, worker B as 4. If the investor is the first guy in the group, the project won't kick off; if the investor join the group of worker A and engineer, the marginal gain is $6000. So all possible sets are:
+
+(1,2,3,4) > 0;  (1,2,4,3) > 0;  (1,3,2,4) > 0;  (1,3,4,2) > 0;  (1,4,2,3) > 0;  (1,4,3,2) >  0;
+
+(2,1,3,4) > 3000;  (2,1,4,3) > 3000;  (2,3,1,4) > 6000;  (2,3,4,1) > 9000;  (2,4,1,3) > 6000;  (2,4,3,1) > 9000;
+
+(3,1,2,4) > 0;  (3,1,4,2) > 0;  (3,2,1,4) > 6000;  (3,2,4,1) > 9000;  (3,4,1,2) > 0;  (3,4,2,1) > 9000;
+
+(4,1,2,3) > 0;  (4,1,3,2) > 0;  (4,2,1,3) > 6000;  (4,2,3,1) > 9000;  (4,3,1,2) > 0;  (4,3,2,1) > 9000
+
+Hereby sum up all conditions, the earning of the investor is 84000 / 24 = 3500 dollars as the Shapley value of the investor.
+
+The Shapley value is able to satisfy several properties that presents "fairness" of the contribution assignment:
+
+- **Symmetry**: the contributions of two player $j$ and $k$ are the same if they contribute equally to all coalitions, i.e. if $v(S\cup\{x_j\})=v(S\cup\{x_k\})$ for all $S\subseteq\{x_1,\ldots,x_n\}\setminus\{x_j,x_k\}$ then $\phi_j=\phi_k$.
+- **Dummy**: a player $j$ that does not change the margin value, regardless of which coalition it is added at, should have a Shapley value of 0, i.e. if $v(S\cup\{x_j\})=v(S)$ for all $S \subseteq \{x_1 \dots x_n\}$ than $\phi_j=0$.
+-  **Additivity**: for a game with combined contributions, the Shapley values are simply $\phi_j+\phi_j^+$.
 
 
+### From Shapley Value to SHAP (Shapley Additive Explanations) 
+
+Now if we treat all features as players in a coalition game, the concept of Shapley value can be applied in our interpretations by calculating $\phi_j(v)$. Question is how do we define $v$? If we use Shapley value $\phi_j(v)$ as the fair feature contribution measurement of feature $j$, then we define $v(S)$ as the prediction of feature values conditioned a set $S$. Taking one $S$ as example:
+
+<div style="text-align: center"><img src="./images/xgb_vd_shap_subset_explain.png" width="700px" /></div>
+
+<center> <i>Fig. 9. SHAP Value Explained in One Subset $S$, <a href="https://arxiv.org/pdf/1802.03888.pdf">image source</a>.</i> </center>
+
+
+
+<br><br>
 Hope this post helps explain stuffs!
-
-http://sofasofa.io/tutorials/shap_xgboost/
-https://apps.dtic.mil/dtic/tr/fulltext/u2/604084.pdf
-https://towardsdatascience.com/one-feature-attribution-method-to-supposedly-rule-them-all-shapley-values-f3e04534983d
-https://christophm.github.io/interpretable-ml-book/shapley.html
-https://en.wikipedia.org/wiki/Shapley_value
-https://kilem3.wordpress.com/2006/04/09/shapley-value-%E5%A6%82%E4%BD%95%E5%85%AC%E5%B9%B3%E7%9A%84%E5%88%86%E9%85%8D%E6%94%B6%E7%9B%8A/

@@ -232,4 +232,5 @@ Note that in the original space, the nearest claim codes are basically all about
 
 In the original space, the nearest claim codes includes asymptomatic HIV infection status, 	infectious agent detection by nucleic acid (DNA or RNA) of HIV-1 quantification, a medicine code of Emtricitabine-Tenofovir Disoproxil Fumarate (treat HIV infection and reduce the risk of HIV infection) and also T-Cell counts. Such codes are all medically relevant.
 
+<br><br>
 Hope this post helps explain stuffs!
