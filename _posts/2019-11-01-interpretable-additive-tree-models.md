@@ -537,11 +537,12 @@ from scipy.special import expit # sigmoid function
 
 print('y_base + sum_of_shap_values inverted from the logarithm of the odd score: %.2f' % (expit(y_pred_shap)))
 ```
+
 ```
 y_base + sum_of_shap_values inverted from the logarithm of the odd score: 0.36
 ```
 
-```shap``` also provide powerful visualization tools:
+SHAP also provide powerful visualization tools:
 
 ```python
 shap.initjs()
