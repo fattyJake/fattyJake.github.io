@@ -555,7 +555,7 @@ shap.force_plot(
 ```
 
 <br>
-<div style="text-align: center"><img src="../images/xgb_vd_shap_force_plot.png" width="600px" /></div>
+<div style="text-align: center"><img src="../images/xgb_vd_shap_force_plot_64.png" width="600px" /></div>
 
 <center> <i>Fig. 10. SHAP Force Plot.</i> </center>
 
