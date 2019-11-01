@@ -394,10 +394,10 @@ $$
 \phi_j(v)=\sum_{S\subseteq N\setminus\{x_j\}}\frac{|S|!\left(|N|-|S|-1\right)!}{|N|!}\left(v\left(S\cup\{x_j\}\right)-v(S)\right)
 $$
 
-where $N=\{x_1, x_2, \dots x_n\}$ is the total number of players and the sum extends over all subsets $S$ of $N$ not containing player $x_j$. The formula can be interpreted as follows: imagine the coalition being formed one player at a time, with each player demanding their contribution $v(S \cup \{x_j\}) − v(S)$ as a fair compensation, and then for each player take the average of this contribution over the possible different permutations in which the coalition can be formed. We can consider the weights $\frac{|S|!\left(|N|-|S|-1\right)!}{|N|!}$ this way:
+where $N=\{x_1, x_2, \dots x_n\}$ is the total number of players and the sum extends over all subsets $S$ of $N$ not containing player $x_j$. The formula can be interpreted as follows: imagine the coalition being formed one player at a time, with each player demanding their contribution $v(S \cup \{x_j\}) − v(S)$ as a fair compensation, and then for each player take the average of this contribution over the possible different permutations in which the coalition can be formed. We can consider the weights $\frac{|S|!\left(\vert N \vert-\vert S\vert-1\right)!}{\vert N\vert!}$ this way:
 
-- Numerator: $|N|$ player permutations have $|N|!$ conditions.
-- Denominator: after subset $S$ is fixed, the player set is $\{x_1, \dots, x_{|S|}, x_j, x_{|S|+2}, \dots, x_n\}$; subset $S=\{x_1, \dots, x_{|S|}\}$ permutations have $|S|!$ conditions, followed by player $x_j$ with remaining player set $\{x_{|S|+2}, \dots, x_n\}$ permutations having $(|N|-|S|-1)!$ conidtion. So the total conditions would be $|S|!\left(|N|-|S|-1\right)!$.
+- Numerator: $\vert N\vert$ player permutations have $\vert N\vert!$ conditions.
+- Denominator: after subset $S$ is fixed, the player set is $\{x_1, \dots, x_{\vert S\vert}, x_j, x_{\vert S\vert+2}, \dots, x_n\}$; subset $S=\{x_1, \dots, x_{\vert S\vert}\}$ permutations have $\vert S\vert!$ conditions, followed by player $x_j$ with remaining player set $\{x_{\vert S\vert+2}, \dots, x_n\}$ permutations having $(\vert N\vert-\vert S\vert-1)!$ conidtion. So the total conditions would be $\vert S\vert!\left(\vert N\vert-\vert S\vert-1\right)!$.
 
 Please check the [original paper](https://apps.dtic.mil/dtic/tr/fulltext/u2/604084.pdf) if you're interested in formula derivation. It can be also interpreted as:
 
@@ -448,7 +448,7 @@ $$
 
 where $f_S(S)$ is the predicted value from original model based on a feature set $S$. And we let $\phi_\emptyset=f_\emptyset(\emptyset)$, then the expression match the equation of $g(x')$ and are hence an additive feature attribution method.
 
-To match the $g(x')$ equation, SHAP proposed another approach as SHAP value, where it defines $f_x(S)=E[f(x)|x_S]$ where $S$ is the set of nonzero indexes in x', and the $E[f(x)|x_S]$ is the expected value of the function **conditioned on a subset $S$** of the input features. Taking one sbbset $S$ as example:
+To match the $g(x')$ equation, SHAP proposed another approach as SHAP value, where it defines $f_x(S)=E[f(x)\vert x_S]$ where $S$ is the set of nonzero indexes in x', and the $E[f(x)\vert x_S]$ is the expected value of the function **conditioned on a subset $S$** of the input features. Taking one sbbset $S$ as example:
 
 <div style="text-align: center"><img src="../images/xgb_vd_shap_subset_explain.png" width="700px" /></div>
 
@@ -457,8 +457,8 @@ To match the $g(x')$ equation, SHAP proposed another approach as SHAP value, whe
 It explain the output of a function $f$ as a sum of the effects $\phi_j$ of each feature being introduced in to a conditional expectation. Importantly, for non-linear models like additive tree models the order in which features are introduced matters. SHAP values results from averaging over all possible ordering. Proofs from coalitional game theory show this is the only possible consistent approach where $\sum_{j=0}^N\phi_j=f(x)$. We can explain above images as:
 
 - Once the subset $S$ is fixed, we start with empty set where $\phi_0=f_x(\emptyset)=E[f(x)]$, where $E[f(x)]$ is the expectation value of model prediction, i.e. the average value of model prediction on the training set;
-- Then according to the order of $S$ we add feature $x_1$, here $\phi_1=f_x(\{x_1\})-f_x(\emptyset)=E[f(x)|x_1]-E[f(x)]$, which means expectation value of model prediction when adding $x_1$ - expectation value of model prediction;
-- Then according to the order of $S$ we add feature $x_2$, here $\phi_1=f_x(\{x_1,x_2\})-f_x(\emptyset)=E[f(x)|x_1,x_2]-E[f(x)]$, which means expectation value of model prediction with both $x_1$ and $x_2$ - expectation value of model prediction with $x_1$;
+- Then according to the order of $S$ we add feature $x_1$, here $\phi_1=f_x(\{x_1\})-f_x(\emptyset)=E[f(x)\vert x_1]-E[f(x)]$, which means expectation value of model prediction when adding $x_1$ - expectation value of model prediction;
+- Then according to the order of $S$ we add feature $x_2$, here $\phi_1=f_x(\{x_1,x_2\})-f_x(\emptyset)=E[f(x)\vert x_1,x_2]-E[f(x)]$, which means expectation value of model prediction with both $x_1$ and $x_2$ - expectation value of model prediction with $x_1$;
 - ...
 - Until the last feature $x_4$ the final expectation value of model prediction with all $x_1, x_2, x_3, x_4$ is actually the predicted value of this instance.
 
