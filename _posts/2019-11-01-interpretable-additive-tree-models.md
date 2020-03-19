@@ -454,7 +454,7 @@ $$
 
 where $f_S(S)$ is the predicted value from original model based on a feature set $S$. And we let $\phi_\emptyset=f_\emptyset(\emptyset)$, then the expression match the equation of $g(x')$ and are hence an additive feature attribution method.
 
-To match the $g(x')$ equation, SHAP proposed another approach as SHAP value, where it defines $f_x(S)=E[f(x)\vert x_S]$ where $S$ is the set of nonzero indexes in x', and the $E[f(x)\vert x_S]$ is the expected value of the function **conditioned on a subset $S$** of the input features. Taking one sbbset $S$ as example:
+To match the $g(x')$ equation, SHAP proposed another approach as SHAP value, where it defines $f_x(S)=E[f(x)\vert x_S]$ where $S$ is the set of nonzero indexes in x', and the $E[f(x)\vert x_S]$ is the expected value of the function **conditioned on a subset $S$** of the input features. Taking one subset $S$ as example:
 
 <div style="text-align: center"><img src="../images/xgb_vd_shap_subset_explain.png" width="700px" /></div>
 
@@ -464,7 +464,7 @@ It explain the output of a function $f$ as a sum of the effects $\phi_j$ of each
 
 - Once the subset $S$ is fixed, we start with empty set where $\phi_0=f_x(\emptyset)=E[f(x)]$, where $E[f(x)]$ is the expectation value of model prediction, i.e. the average value of model prediction on the training set;
 - Then according to the order of $S$ we add feature $x_1$, here $\phi_1=f_x(\{x_1\})-f_x(\emptyset)=E[f(x)\vert x_1]-E[f(x)]$, which means expectation value of model prediction when adding $x_1$ - expectation value of model prediction;
-- Then according to the order of $S$ we add feature $x_2$, here $\phi_1=f_x(\{x_1,x_2\})-f_x(\emptyset)=E[f(x)\vert x_1,x_2]-E[f(x)]$, which means expectation value of model prediction with both $x_1$ and $x_2$ - expectation value of model prediction with $x_1$;
+- Then according to the order of $S$ we add feature $x_2$, here $\phi_2=f_x(\{x_1,x_2\})-f_x(\emptyset)=E[f(x)\vert x_1,x_2]-E[f(x)]$, which means expectation value of model prediction with both $x_1$ and $x_2$ - expectation value of model prediction with $x_1$;
 - ...
 - Until the last feature $x_4$ the final expectation value of model prediction with all $x_1, x_2, x_3, x_4$ is actually the predicted value of this instance.
 
