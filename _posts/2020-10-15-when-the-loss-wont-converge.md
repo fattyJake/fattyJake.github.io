@@ -2,7 +2,7 @@
 layout: post
 comments: true
 title: "When the Loss Won't Converge"
-date: 2019-10-15 16:00:00
+date: 2020-10-15 16:00:00
 categories: [DeepLearning]
 mathjax: true
 ---

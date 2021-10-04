@@ -2,7 +2,7 @@
 layout: post
 comments: true
 title: "Embedding Learning Beyond Words"
-date: 2019-09-06 20:00:00
+date: 2020-09-06 20:00:00
 categories: [DeepLearning,NLP]
 mathjax: true
 ---
